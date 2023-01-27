@@ -1,8 +1,11 @@
+/* ------ Page ------ */
+
 .container{
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+	background-color: #28343d;
 }
 
 .calculator{
@@ -14,6 +17,8 @@
   border-radius: 15px;
   padding:30px
 }
+
+/* ------ Display Section ------ */
 
 .display{
   flex: 1;
@@ -34,11 +39,13 @@
 	font-size: 36px;
 }
 
+/* ------ Button Section ------ */
+
 .buttons{
   flex: 3;
 	display: grid;
-	gap: 8px;
-	grid-template-columns: auto auto auto auto;
+	gap: 12px;
+	grid-template-columns: repeat(4, minmax(56px, 80px));
 }
 
 .buttons button{
@@ -48,6 +55,10 @@
 
 .buttons button:hover{
 	background-color: lightblue;
+}
+
+.buttons button:active{
+	opacity: .5;
 }
 
 .add{
@@ -60,5 +71,17 @@
 .zero{
 	grid-column-start: 1;
 	grid-column-end: 3;
+}
+
+.grey{
+	background-color: #6b727a;
+}
+
+.blue{
+	background-color: #6bafff;
+}
+
+.light-grey{
+	background-color: lightgray;
 }
 
