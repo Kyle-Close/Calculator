@@ -3,17 +3,12 @@ const resultDisplay = document.querySelector(".result");
 const sequenceDisplay = document.querySelector(".sequence");
 const buttons = document.querySelectorAll(".buttons button");
 
-// Strings to hold current values
-var currentStr = "";
+// ---- Global Variables ---- //
+var isCompletingOperation = false;
 var resultStr = "";
-
-// Booleans to track what operation we are doing
-var isDivide = false;
-var isMultiply = false;
-var isAddition = false;
-var isSubtraction = false;
-
-var keepResultDisplayed = false;
+var sequenceStr = "";
+var firstValue = "";
+var operation = "";
 
 // Put event listeners on each button
 [...buttons].forEach(function (button) {
@@ -21,46 +16,92 @@ var keepResultDisplayed = false;
 });
 
 function onButtonPress(e) {
-  // Check if button pressed was anything other than a number/decimal
-  if (checkIfUtilityButton(e.target.textContent)) {
-    executeUtilityButton(e.target.textContent);
-    if (keepResultDisplayed) {
-      keepResultDisplayed = false;
+  if (isUtilityButton(e.target.textContent)) {
+    console.log("Match found");
+    if (isOperationButton(e.target.textContent)) {
+      console.log("Is operation");
+      if (resultStr) {
+        sequenceStr += resultStr + " " + e.target.textContent + " ";
+        if (isCompletingOperation) {
+          executeOperation();
+        } else {
+          isCompletingOperation = true;
+          firstValue = resultStr;
+          operation = sequenceStr[sequenceStr.length - 2];
+          sequenceDisplay.textContent = sequenceStr;
+          resultStr = "";
+        }
+      } else {
+      }
     } else {
-      clearResultDisplay();
+      console.log("Is not operation");
+      if (e.target.textContent == "C") {
+        isCompletingOperation = false;
+        resultStr = "";
+        sequenceStr = "";
+        firstValue = "";
+        operation = "";
+        sequenceDisplay.textContent = sequenceStr;
+        resultDisplay.textContent = resultStr;
+      } else if (e.target.textContent == "DELETE") {
+        if (resultStr.length > 0) {
+          resultStr = resultStr.slice(0, -1);
+          resultDisplay.textContent = resultStr;
+        }
+      } else {
+        if (resultStr && firstValue && operation) {
+          executeOperation();
+        }
+      }
     }
-
-    return;
   } else {
-    resultStr += e.target.textContent;
-    displayCurrentResult();
+    console.log("No match found");
+    if (e.target.textContent == ".") {
+      if (resultStr) {
+        if (!resultStr.includes(".")) {
+          resultStr += ".";
+          resultDisplay.textContent = resultStr;
+        }
+      } else {
+        resultStr += "0.";
+        resultDisplay.textContent = resultStr;
+      }
+    } else if (e.target.textContent == "0") {
+      if (resultStr) {
+        resultStr += e.target.textContent;
+        resultDisplay.textContent = resultStr;
+      }
+    } else {
+      resultStr += e.target.textContent;
+      resultDisplay.textContent = resultStr;
+    }
   }
-
-  // Check if we are completing an operation
-  if (isCompletingOperation()) {
-    // If we are, check what operation and execute it
-    executeOperation();
-    displayCurrentResult();
-  }
-
-  currentStr += e.target.textContent;
-  displayCurrentSequence();
-  displayCurrentResult();
 }
 
-function clearResultDisplay() {
-  resultDisplay.textContent = "";
+function executeOperation(operator) {
+  var a = Number(firstValue);
+  var b = Number(resultStr);
+
+  switch (operation) {
+    case "+":
+      firstValue = add(a, b).toString();
+      break;
+    case "-":
+      firstValue = subtract(a, b).toString();
+      break;
+    case "*":
+      firstValue = multiply(a, b).toString();
+      break;
+    case "/":
+      firstValue = divide(a, b).toString();
+      break;
+  }
+
+  resultDisplay.textContent = firstValue;
   resultStr = "";
-}
-
-function displayCurrentResult() {
-  resultDisplay.textContent = resultStr;
-}
-
-function checkIfUtilityButton(value) {
-  const utilityLookup = ["C", "/", "*", "-", "+", "=", "+ / -"];
-  let foundMatch = utilityLookup.some((code) => code === value);
-  return foundMatch ? true : false;
+  operation = sequenceStr[sequenceStr.length - 2];
+  sequenceStr = firstValue + " " + operation + " ";
+  sequenceDisplay.textContent = sequenceStr;
 }
 
 function add(a, b) {
@@ -76,83 +117,31 @@ function multiply(a, b) {
 }
 
 function divide(a, b) {
-  result = a / b;
-  resultDisplay.textContent = result;
-  resultStr = result.toString();
-  return result;
+  return a / b;
 }
 
-function executeUtilityButton(button) {
-  switch (button) {
-    case "C":
-      clearCalculator();
-      break;
-    case "/":
-      currentStr += " / ";
-      displayCurrentSequence();
-      if (isDivide) {
-        executeOperation();
-        keepResultDisplayed = true;
-        isDivide = false;
-      } else {
-        isDivide = true;
-      }
-
-      break;
-  }
-}
-
-function clearCalculator() {
-  currentStr = "";
-  displayCurrentSequence();
-}
-
-function displayCurrentSequence() {
-  sequenceDisplay.textContent = currentStr;
-  return;
-}
-
-function isCompletingOperation() {
-  if (
-    (isDivide || isMultiply || isAddition || isSubtraction) &&
-    checkIfUtilityButton()
-  ) {
+function isUtilityButton(button) {
+  const utilityButtons = ["C", "DELETE", "/", "*", "-", "+", "="];
+  var match = false;
+  utilityButtons.forEach((value) => {
+    if (button == value) {
+      match = true;
+    }
+  });
+  if (match) {
     return true;
   }
 }
 
-function executeOperation() {
-  var a = getNumA();
-  var b = getNumB();
-
-  if (isAddition) {
-    add(a, b);
-  } else if (isSubtraction) {
-    subtract(a, b);
-  } else if (isMultiply) {
-    multiply(a, b);
-  } else {
-    divide(a, b);
+function isOperationButton(button) {
+  const operationsButtons = ["+", "-", "*", "/"];
+  var match = false;
+  operationsButtons.forEach((value) => {
+    if (button == value) {
+      match = true;
+    }
+  });
+  if (match) {
+    return true;
   }
-  return;
-}
-
-function getNumA() {
-  const regex = /\d+/g;
-  let matches = currentStr.match(regex);
-  let length = matches.length;
-  console.log(length);
-  if (length > 1) {
-    let a = Number(matches[length - 2]);
-    console.log("a: " + a);
-    return a;
-  } else {
-    let a = Number(matches[0]);
-    console.log("a: " + a);
-    return a;
-  }
-}
-
-function getNumB() {
-  return Number(resultStr);
 }
