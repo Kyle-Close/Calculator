@@ -5,6 +5,7 @@ const buttons = document.querySelectorAll(".buttons button");
 
 // ---- Global Variables ---- //
 var isCompletingOperation = false;
+var justUsedEquals = false;
 var resultStr = "";
 var sequenceStr = "";
 var firstValue = "";
@@ -21,7 +22,13 @@ function onButtonPress(e) {
     if (isOperationButton(e.target.textContent)) {
       console.log("Is operation");
       if (resultStr) {
-        sequenceStr += resultStr + " " + e.target.textContent + " ";
+        if (justUsedEquals) {
+          sequenceStr += " " + e.target.textContent + " ";
+          justUsedEquals = false;
+        } else {
+          sequenceStr += resultStr + " " + e.target.textContent + " ";
+        }
+
         if (isCompletingOperation) {
           executeOperation();
         } else {
@@ -45,12 +52,15 @@ function onButtonPress(e) {
         resultDisplay.textContent = resultStr;
       } else if (e.target.textContent == "DELETE") {
         if (resultStr.length > 0) {
-          resultStr = resultStr.slice(0, -1);
-          resultDisplay.textContent = resultStr;
+          if (!justUsedEquals) {
+            resultStr = resultStr.slice(0, -1);
+            resultDisplay.textContent = resultStr;
+          }
         }
       } else {
-        if (resultStr && firstValue && operation) {
-          executeOperation();
+        if (resultStr && firstValue && operation && !justUsedEquals) {
+          executeOperation(true);
+          justUsedEquals = true;
         }
       }
     }
@@ -67,18 +77,20 @@ function onButtonPress(e) {
         resultDisplay.textContent = resultStr;
       }
     } else if (e.target.textContent == "0") {
-      if (resultStr) {
+      if (resultStr && resultStr.length < 19) {
         resultStr += e.target.textContent;
         resultDisplay.textContent = resultStr;
       }
     } else {
-      resultStr += e.target.textContent;
-      resultDisplay.textContent = resultStr;
+      if (resultStr.length < 19) {
+        resultStr += e.target.textContent;
+        resultDisplay.textContent = resultStr;
+      }
     }
   }
 }
 
-function executeOperation(operator) {
+function executeOperation(isEquals) {
   var a = Number(firstValue);
   var b = Number(resultStr);
 
@@ -96,12 +108,19 @@ function executeOperation(operator) {
       firstValue = divide(a, b).toString();
       break;
   }
-
+  firstValue = Math.round(firstValue * 100) / 100;
   resultDisplay.textContent = firstValue;
   resultStr = "";
   operation = sequenceStr[sequenceStr.length - 2];
-  sequenceStr = firstValue + " " + operation + " ";
-  sequenceDisplay.textContent = sequenceStr;
+  if (isEquals) {
+    sequenceStr = firstValue;
+    sequenceDisplay.textContent = "";
+    resultStr = firstValue;
+    isCompletingOperation = false;
+  } else {
+    sequenceStr = firstValue + " " + operation + " ";
+    sequenceDisplay.textContent = sequenceStr;
+  }
 }
 
 function add(a, b) {
