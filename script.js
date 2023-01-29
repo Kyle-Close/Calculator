@@ -52,10 +52,8 @@ function onButtonPress(e) {
         resultDisplay.textContent = resultStr;
       } else if (e.target.textContent == "DELETE") {
         if (resultStr.length > 0) {
-          if (!justUsedEquals) {
-            resultStr = resultStr.slice(0, -1);
-            resultDisplay.textContent = resultStr;
-          }
+          resultStr = resultStr.slice(0, -1);
+          resultDisplay.textContent = resultStr;
         }
       } else {
         if (resultStr && firstValue && operation && !justUsedEquals) {
